@@ -9,24 +9,40 @@ import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.common.BitMatrix;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 public class MainActivity extends AppCompatActivity {
     Button loc;
+    ImageView qr;
     TextView lonlat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         loc = findViewById(R.id.location);
         lonlat = findViewById(R.id.lon);
+        qr = findViewById(R.id.qrcode);
 
         loc.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -34,6 +50,18 @@ public class MainActivity extends AppCompatActivity {
                 open(view);
             }
         });
+
+        try {
+            FileInputStream fis = openFileInput("lonlat");
+            if (fis!=null){
+                byte[] buffer = new byte[fis.available()];
+                fis.read(buffer);
+                lonlat.setText(new String(buffer));
+                fis.close();
+            }
+            Bitmap bm = BitmapFactory.decodeFile("/data/data/com.example.storelocation/filesqrcode");
+            if(bm!=null) qr.setImageBitmap(bm);
+        } catch (IOException e) {}
     }
     public void open(View view) {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
@@ -54,6 +82,25 @@ public class MainActivity extends AppCompatActivity {
                             double longitude = location.getLongitude();
                             double latitude = location.getLatitude();
                             lonlat.setText("위도 : "+longitude+"\n경도 : "+latitude);
+
+                            MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
+                            try{
+                                BitMatrix bitMatrix = multiFormatWriter.encode(lonlat.getText().toString(), BarcodeFormat.QR_CODE,200,200);
+                                BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
+                                Bitmap bitmap = barcodeEncoder.createBitmap(bitMatrix);
+                                qr.setImageBitmap(bitmap);
+
+                                File tempFile = new File(getFilesDir()+"qrcode");
+
+                                FileOutputStream ios = new FileOutputStream(tempFile);
+                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, ios);
+                            }catch (Exception e){}
+
+                            try {
+                                FileOutputStream fos = openFileOutput("lonlat", Context.MODE_PRIVATE);
+                                fos.write(lonlat.getText().toString().getBytes());
+                                fos.close();
+                            } catch (IOException e) {}
                         }
                         Toast.makeText(MainActivity.this, "설정 완료", Toast.LENGTH_LONG).show();
                     }
