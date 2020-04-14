@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.View;
@@ -44,6 +45,11 @@ public class MainActivity extends AppCompatActivity {
         lonlat = findViewById(R.id.lon);
         qr = findViewById(R.id.qrcode);
 
+        if (ContextCompat.checkSelfPermission( MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED ) {
+            ActivityCompat.requestPermissions( MainActivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION},
+                    0 );
+        }
+
         loc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -70,18 +76,29 @@ public class MainActivity extends AppCompatActivity {
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+                        LocationListener gpsLocationListener = new LocationListener() {
+                            public void onLocationChanged(Location location) {
+                                double longitude = location.getLongitude();
+                                double latitude = location.getLatitude();
+                            }
+                            public void onStatusChanged(String provider, int status, Bundle extras) {}
+                            public void onProviderEnabled(String provider) {}
+                            public void onProviderDisabled(String provider) {}
+                        };
                         final LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
                         if (ContextCompat.checkSelfPermission( MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED ) {
-                            ActivityCompat.requestPermissions( MainActivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION},
-                                    0 );
+                            Toast.makeText(MainActivity.this, "error", Toast.LENGTH_LONG).show();
                         }
                         else{
+                            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, gpsLocationListener);
+                            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, gpsLocationListener);
+
                             Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
-                            double longitude = location.getLongitude();
-                            double latitude = location.getLatitude();
-                            lonlat.setText("위도 : "+longitude+"\n경도 : "+latitude);
+                            float longitude = (float)location.getLongitude();
+                            float latitude = (float)location.getLatitude();
+                            lonlat.setText("위도 : "+String.format("%.6f",longitude)+"\n경도 : "+String.format("%.6f",latitude));
 
                             MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
                             try{
@@ -102,18 +119,13 @@ public class MainActivity extends AppCompatActivity {
                                 fos.close();
                             } catch (IOException e) {}
                         }
-                        Toast.makeText(MainActivity.this, "설정 완료", Toast.LENGTH_LONG).show();
                     }
                 });
-
         alertDialogBuilder.setNegativeButton("아니오",
                 new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        Toast.makeText(MainActivity.this, "설정 취소", Toast.LENGTH_LONG).show();
-                    }
+                    public void onClick(DialogInterface dialogInterface, int i) {}
                 });
-
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.show();
     }
