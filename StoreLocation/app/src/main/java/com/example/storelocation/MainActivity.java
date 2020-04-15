@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         loc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                open(view);
+                    open(view);
             }
         });
 
@@ -87,18 +87,24 @@ public class MainActivity extends AppCompatActivity {
                         };
                         final LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-                        if (ContextCompat.checkSelfPermission( MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED ) {
-                            Toast.makeText(MainActivity.this, "error", Toast.LENGTH_LONG).show();
+                        if (ContextCompat.checkSelfPermission( MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED&&
+                        ContextCompat.checkSelfPermission( MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED ) {
+                            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)&&
+                                    ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)){
+                                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
+                                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 101);
+                            }
                         }
                         else{
-                            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, gpsLocationListener);
-                            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, gpsLocationListener);
+                            try {
+                                lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, gpsLocationListener);
 
-                            Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                                Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
-                            float longitude = (float)location.getLongitude();
-                            float latitude = (float)location.getLatitude();
-                            lonlat.setText("위도 : "+String.format("%.6f",longitude)+"\n경도 : "+String.format("%.6f",latitude));
+                                float longitude = (float)location.getLongitude();
+                                float latitude = (float)location.getLatitude();
+                                lonlat.setText(String.format("%.6f",longitude)+", "+String.format("%.6f",latitude));
+                            } catch (Exception e){Toast.makeText(MainActivity.this, "위치 불러오기 실패", Toast.LENGTH_LONG).show();}
 
                             MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
                             try{
