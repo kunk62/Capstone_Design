@@ -2,7 +2,6 @@ import requests
 import json
 import pyzbar.pyzbar as pyzbar
 import cv2
-import pprint
 # 부경대학교 대연캠퍼스의 버스정류장 = 35.134199, 129.103163
 
 print("QR코드를 스캔하세요.\n")
