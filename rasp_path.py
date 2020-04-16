@@ -2,6 +2,7 @@ import requests
 import json
 import pyzbar.pyzbar as pyzbar
 import cv2
+import pprint
 # 부경대학교 대연캠퍼스의 버스정류장 = 35.134199, 129.103163
 
 print("QR코드를 스캔하세요.\n")
@@ -54,22 +55,27 @@ if res['status'] != "NOT_FOUND":
     departure = res['routes'][0]['legs'][0]['departure_time']['text']
     end_add = res['routes'][0]['legs'][0]['end_address'][5:]
     start_add = res['routes'][0]['legs'][0]['start_address'][5:]
-    
-    print("출발지 주소 : "+start_add+"\n도착지 주소 : "+end_add)
+
+    print("출발지 주소 : " + start_add + "\n도착지 주소 : " + end_add)
     print("\n출발 시간 : " + departure + ", 도착 시간 : " + arrival)
-    print("거리 : "+distance+", 소요 시간 : "+duration)
+    print("거리 : " + distance + ", 소요 시간 : " + duration)
     print()
-    
+
     try:
         i = 0
         while res['routes'][0]['legs'][0]['steps'][i]['html_instructions'] is not None:
             description = res['routes'][0]['legs'][0]['steps'][i]['html_instructions']
             dur = res['routes'][0]['legs'][0]['steps'][i]['duration']['text']
             dis = res['routes'][0]['legs'][0]['steps'][i]['distance']['text']
+            detail = ""
+
             print(i + 1, end="")
-            print(". "+description+", "+dur+", "+dis)
+            print(". " + description + ", " + dur + ", " + dis)
+            if res['routes'][0]['legs'][0]['steps'][i]['travel_mode'] == "TRANSIT":
+                detail = res['routes'][0]['legs'][0]['steps'][i]['transit_details']['line']['short_name']
+                print("\t정보:" + detail)
             i += 1
     except IndexError:
         pass
 else:
-    print("Wrong request.");
+    print("Wrong request.")
