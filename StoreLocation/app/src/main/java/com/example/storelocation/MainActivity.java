@@ -118,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         else{
                             try {
+                                assert lm != null;
                                 lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, gpsLocationListener);
 
                                 Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
