@@ -8,12 +8,15 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -30,10 +33,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     Button loc;
-    ImageView qr;
+    Button dir;
     TextView lonlat;
 
     @Override
@@ -43,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
         loc = findViewById(R.id.location);
         lonlat = findViewById(R.id.lon);
-        qr = findViewById(R.id.qrcode);
+        dir = findViewById(R.id.direction);
 
         if (ContextCompat.checkSelfPermission( MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED ) {
             ActivityCompat.requestPermissions( MainActivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION},
@@ -56,7 +60,26 @@ public class MainActivity extends AppCompatActivity {
                     open(view);
             }
         });
+        dir.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try{
+                    String lat = lonlat.getText().subSequence(12, 21).toString();
+                    String lon= lonlat.getText().subSequence(0, 10).toString();
 
+                    String url = "nmap://route/public?dlat="+lat+"&dlng="+lon+"&dname=%EB%8F%84%EC%B0%A9%EC%9E%A5%EC%86%8C&appname=com.example.storelocation";
+
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    intent.addCategory(Intent.CATEGORY_BROWSABLE);
+
+                    List<ResolveInfo> list = getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+                    if (list == null || list.isEmpty()) {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.nhn.android.nmap")));
+                    } else {
+                        startActivity(intent);
+                    }} catch (Exception e){Toast.makeText(MainActivity.this, "목적지를 입력하세요.", Toast.LENGTH_LONG).show();};
+            }
+        });
         try {
             FileInputStream fis = openFileInput("lonlat");
             if (fis!=null){
@@ -65,8 +88,6 @@ public class MainActivity extends AppCompatActivity {
                 lonlat.setText(new String(buffer));
                 fis.close();
             }
-            Bitmap bm = BitmapFactory.decodeFile("/data/data/com.example.storelocation/filesqrcode");
-            if(bm!=null) qr.setImageBitmap(bm);
         } catch (IOException e) {}
     }
     public void open(View view) {
@@ -105,19 +126,6 @@ public class MainActivity extends AppCompatActivity {
                                 float latitude = (float)location.getLatitude();
                                 lonlat.setText(String.format("%.6f",longitude)+", "+String.format("%.6f",latitude));
                             } catch (Exception e){Toast.makeText(MainActivity.this, "위치 불러오기 실패", Toast.LENGTH_LONG).show();}
-
-                            MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
-                            try{
-                                BitMatrix bitMatrix = multiFormatWriter.encode(lonlat.getText().toString(), BarcodeFormat.QR_CODE,200,200);
-                                BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
-                                Bitmap bitmap = barcodeEncoder.createBitmap(bitMatrix);
-                                qr.setImageBitmap(bitmap);
-
-                                File tempFile = new File(getFilesDir()+"qrcode");
-
-                                FileOutputStream ios = new FileOutputStream(tempFile);
-                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, ios);
-                            }catch (Exception e){}
 
                             try {
                                 FileOutputStream fos = openFileOutput("lonlat", Context.MODE_PRIVATE);

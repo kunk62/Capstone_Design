@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">StoreLocation</string>
     <string name="location">위치 지정하기</string>
+    <string name="direction">길찾기</string>
 </resources>
