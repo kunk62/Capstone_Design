@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">StoreLocation</string>
-    <string name="location">위치 지정하기</string>
-    <string name="direction">길찾기</string>
+    <string name="app_name">길안내 for 노약자</string>
+    <string name="location">집으로 지정</string>
 </resources>

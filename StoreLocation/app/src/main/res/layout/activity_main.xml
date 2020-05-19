@@ -4,47 +4,37 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@drawable/background">
 
     <Button
-        android:layout_marginTop="150dp"
+        android:id="@+id/direction"
+        android:layout_width="315dp"
+        android:layout_height="315dp"
         android:layout_gravity="center"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:text="@string/location"
-        android:textSize="35dp"
-        android:id="@+id/location"
-        ></Button>
+        android:layout_marginLeft="70dp"
+        android:layout_marginTop="130dp"
+        android:layout_marginRight="70dp"
+        android:background="@drawable/btn1"></Button>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="170dp"
         android:id="@+id/lon"
         ></TextView>
-
-    <ImageView
-        android:layout_gravity="center"
-        android:layout_marginTop="50dp"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:src="@drawable/arrow"
-        ></ImageView>
 
    <Button
         android:layout_marginTop="30dp"
         android:layout_gravity="center"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:text="@string/direction"
-        android:textSize="35dp"
-        android:id="@+id/direction"
+        android:layout_marginLeft="70dp"
+        android:layout_marginRight="70dp"
+        android:text="@string/location"
+        android:textSize="30dp"
+        android:id="@+id/location"
+        android:background="@color/white"
         ></Button>
 </LinearLayout>

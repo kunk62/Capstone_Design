@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.FileSystemLoopException;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -51,21 +52,81 @@ public class MainActivity extends AppCompatActivity {
 
         if (ContextCompat.checkSelfPermission( MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED ) {
             ActivityCompat.requestPermissions( MainActivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION},
-                    0 );
+                    101 );
         }
+//        if (ContextCompat.checkSelfPermission( MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED ) {
+//            ActivityCompat.requestPermissions( MainActivity.this, new String[] {Manifest.permission.ACCESS_COARSE_LOCATION},
+//                    101 );
+//        }
 
         loc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    open(view);
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                alertDialogBuilder.setMessage("*주의*\n반드시 집에서만 설정하시기 바랍니다. 집이 아닐 경우 아니오를 눌러주세요.");
+                alertDialogBuilder.setPositiveButton("예",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                LocationListener gpsLocationListener = new LocationListener() {
+                                    public void onLocationChanged(Location location) {
+                                        double longitude = location.getLongitude();
+                                        double latitude = location.getLatitude();
+
+                                        lonlat.setText(String.format("%.6f",longitude)+", "+String.format("%.6f",latitude));
+
+                                        try {
+                                            FileOutputStream fos = openFileOutput("lonlat", Context.MODE_PRIVATE);
+                                            fos.write(lonlat.getText().toString().getBytes());
+                                            fos.close();
+                                        } catch (IOException e) {}
+                                    }
+                                    public void onStatusChanged(String provider, int status, Bundle extras) {}
+                                    public void onProviderEnabled(String provider) {}
+                                    public void onProviderDisabled(String provider) {}
+                                };
+
+                                if (ContextCompat.checkSelfPermission( MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED)
+                                       // ContextCompat.checkSelfPermission( MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION ) == PackageManager.PERMISSION_GRANTED )
+                                {
+                                    //permission 있을 경우
+                                    try {
+                                        final LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                                        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, gpsLocationListener);
+
+                                        //Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                                    } catch (Exception e){Toast.makeText(MainActivity.this, "위치 불러오기 실패", Toast.LENGTH_LONG).show();}
+                                }
+                                else{
+                                    //permission 없을경우
+                                    if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)){
+                                            //ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)){
+                                        //Toast.makeText(MainActivity.this, "위치 접근 권한이 필요합니다.", Toast.LENGTH_LONG).show();
+                                        //ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
+                                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 101);
+                                    }
+                                    else{
+                                        //ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
+                                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 101);
+                                    }
+                                }
+                            }
+                        });
+                alertDialogBuilder.setNegativeButton("아니오",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {}
+                        });
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
             }
         });
         dir.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try{
-                    String lat = lonlat.getText().subSequence(12, 21).toString();
-                    String lon= lonlat.getText().subSequence(0, 10).toString();
+                    String lat=lonlat.getText().subSequence(12, 21).toString();
+                    String lon=lonlat.getText().subSequence(0, 10).toString();
 
                     String url = "nmap://route/public?dlat="+lat+"&dlng="+lon+"&dname=%EB%8F%84%EC%B0%A9%EC%9E%A5%EC%86%8C&appname=com.example.storelocation";
 
@@ -89,59 +150,5 @@ public class MainActivity extends AppCompatActivity {
                 fis.close();
             }
         } catch (IOException e) {}
-    }
-    public void open(View view) {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setMessage("현 위치를 집으로 설정하시겠습니까?");
-        alertDialogBuilder.setPositiveButton("예",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        LocationListener gpsLocationListener = new LocationListener() {
-                            public void onLocationChanged(Location location) {
-                                double longitude = location.getLongitude();
-                                double latitude = location.getLatitude();
-                            }
-                            public void onStatusChanged(String provider, int status, Bundle extras) {}
-                            public void onProviderEnabled(String provider) {}
-                            public void onProviderDisabled(String provider) {}
-                        };
-                        final LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-                        if (ContextCompat.checkSelfPermission( MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED&&
-                        ContextCompat.checkSelfPermission( MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED ) {
-                            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)&&
-                                    ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)){
-                                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
-                                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 101);
-                            }
-                        }
-                        else{
-                            try {
-                                assert lm != null;
-                                lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, gpsLocationListener);
-
-                                Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-                                float longitude = (float)location.getLongitude();
-                                float latitude = (float)location.getLatitude();
-                                lonlat.setText(String.format("%.6f",longitude)+", "+String.format("%.6f",latitude));
-                            } catch (Exception e){Toast.makeText(MainActivity.this, "위치 불러오기 실패", Toast.LENGTH_LONG).show();}
-
-                            try {
-                                FileOutputStream fos = openFileOutput("lonlat", Context.MODE_PRIVATE);
-                                fos.write(lonlat.getText().toString().getBytes());
-                                fos.close();
-                            } catch (IOException e) {}
-                        }
-                    }
-                });
-        alertDialogBuilder.setNegativeButton("아니오",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {}
-                });
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
     }
 }
