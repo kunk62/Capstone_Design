@@ -40,12 +40,14 @@ public class MainActivity extends AppCompatActivity {
     Button loc;
     Button dir;
     TextView lonlat;
+    TextView prov;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        prov = findViewById(R.id.provider);
         loc = findViewById(R.id.location);
         lonlat = findViewById(R.id.lon);
         dir = findViewById(R.id.direction);
@@ -72,9 +74,10 @@ public class MainActivity extends AppCompatActivity {
                                     public void onLocationChanged(Location location) {
                                         double longitude = location.getLongitude();
                                         double latitude = location.getLatitude();
+                                        String provider = location.getProvider();
 
                                         lonlat.setText(String.format("%.6f",longitude)+", "+String.format("%.6f",latitude));
-
+                                        prov.setText(provider);
                                         try {
                                             FileOutputStream fos = openFileOutput("lonlat", Context.MODE_PRIVATE);
                                             fos.write(lonlat.getText().toString().getBytes());
@@ -93,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
                                     try {
                                         final LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
                                         lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, gpsLocationListener);
-
+                                        lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, gpsLocationListener);
                                         //Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                                     } catch (Exception e){Toast.makeText(MainActivity.this, "위치 불러오기 실패", Toast.LENGTH_LONG).show();}
                                 }
